@@ -1,0 +1,15 @@
+package com.sgivu.vehicle.service;
+
+import com.sgivu.vehicle.entity.Car;
+import java.util.List;
+import java.util.Optional;
+
+public interface CarService extends VehicleService<Car> {
+  Optional<Car> findByFuelType(String fuelType);
+
+  Optional<Car> findByBodyType(String bodyType);
+
+  List<Car> findByFuelTypeContainingIgnoreCase(String fuelType);
+
+  List<Car> findByBodyTypeContainingIgnoreCase(String bodyType);
+}

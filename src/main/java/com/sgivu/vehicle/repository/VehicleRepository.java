@@ -1,0 +1,20 @@
+package com.sgivu.vehicle.repository;
+
+import com.sgivu.vehicle.entity.Vehicle;
+import java.util.List;
+import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface VehicleRepository<T extends Vehicle> extends JpaRepository<T, Long> {
+  Optional<T> findByPlate(String plate);
+
+  List<T> findByPlateContainingIgnoreCase(String plate);
+
+  List<T> findByBrandContainingIgnoreCase(String brand);
+
+  List<T> findByModelContainingIgnoreCase(String model);
+
+  List<T> findByLineContainingIgnoreCase(String line);
+
+  long countByIsAvailable(boolean isAvailable);
+}
