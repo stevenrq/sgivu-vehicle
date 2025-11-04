@@ -7,6 +7,7 @@ import com.sgivu.vehicle.mapper.VehicleMapper;
 import com.sgivu.vehicle.service.MotorcycleService;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -139,13 +140,12 @@ public class MotorcycleController {
 
     Set<Motorcycle> results = new LinkedHashSet<>();
 
-    Map<String, String> filters =
-        Map.of(
-            "plate", plate,
-            "brand", brand,
-            "line", line,
-            "model", model,
-            "motorcycleType", motorcycleType);
+    Map<String, String> filters = new LinkedHashMap<>();
+    filters.put("plate", plate);
+    filters.put("brand", brand);
+    filters.put("line", line);
+    filters.put("model", model);
+    filters.put("motorcycleType", motorcycleType);
 
     filters.forEach(
         (key, value) -> {
