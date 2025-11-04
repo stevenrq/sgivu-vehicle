@@ -85,20 +85,6 @@ public abstract class AbstractVehicleServiceImpl<T extends Vehicle, R extends Ve
 
   @Transactional
   @Override
-  public boolean changeAvailability(Long id, boolean isAvailable) {
-    return vehicleRepository
-        .findById(id)
-        .map(
-            vehicle -> {
-              vehicle.setAvailable(isAvailable);
-              vehicleRepository.save(vehicle);
-              return true;
-            })
-        .orElse(false);
-  }
-
-  @Transactional
-  @Override
   public Optional<T> changeStatus(Long id, VehicleStatus status) {
     return vehicleRepository
         .findById(id)
@@ -112,8 +98,8 @@ public abstract class AbstractVehicleServiceImpl<T extends Vehicle, R extends Ve
   }
 
   @Override
-  public long countByIsAvailable(boolean isAvailable) {
-    return vehicleRepository.countByIsAvailable(isAvailable);
+  public long countByStatus(VehicleStatus status) {
+    return vehicleRepository.countByStatus(status);
   }
 
   @Override

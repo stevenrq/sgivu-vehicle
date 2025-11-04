@@ -5,6 +5,7 @@ import com.sgivu.vehicle.entity.Car;
 import com.sgivu.vehicle.enums.VehicleStatus;
 import com.sgivu.vehicle.mapper.VehicleMapper;
 import com.sgivu.vehicle.service.CarService;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -102,17 +103,6 @@ public class CarController {
     return ResponseEntity.notFound().build();
   }
 
-  @PatchMapping("/{id}/availability")
-  @PreAuthorize("hasAuthority('car:update')")
-  public ResponseEntity<Map<String, Boolean>> changeAvailability(
-      @PathVariable Long id, @RequestBody boolean isAvailable) {
-    boolean isUpdated = carService.changeAvailability(id, isAvailable);
-    if (isUpdated) {
-      return ResponseEntity.ok(Collections.singletonMap("status", isAvailable));
-    }
-    return ResponseEntity.notFound().build();
-  }
-
   @PatchMapping("/{id}/status")
   @PreAuthorize("hasAuthority('car:update')")
   public ResponseEntity<Map<String, String>> changeStatus(
@@ -127,7 +117,7 @@ public class CarController {
   @PreAuthorize("hasAuthority('car:read')")
   public ResponseEntity<Map<String, Long>> getCarCounts() {
     long totalCars = carService.findAll().size();
-    long availableCars = carService.countByIsAvailable(true);
+    long availableCars = carService.countByStatus(VehicleStatus.AVAILABLE);
     long unavailableCars = totalCars - availableCars;
 
     Map<String, Long> counts = new HashMap<>(Map.of("totalCars", totalCars));

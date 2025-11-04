@@ -24,5 +24,4 @@ public class VehicleResponse {
   private VehicleStatus status;
   private Double purchasePrice;
   private Double salePrice;
-  private boolean isAvailable;
 }

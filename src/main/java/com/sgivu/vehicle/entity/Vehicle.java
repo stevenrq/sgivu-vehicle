@@ -110,9 +110,6 @@ public abstract class Vehicle implements Serializable {
   @Column(name = "photo_url", length = 500)
   private String photoUrl;
 
-  @Column(name = "is_available", nullable = false)
-  private boolean isAvailable;
-
   private LocalDateTime createdAt;
 
   private LocalDateTime updatedAt;
@@ -121,7 +118,6 @@ public abstract class Vehicle implements Serializable {
   public void prePersist() {
     this.createdAt = LocalDateTime.now();
     this.updatedAt = LocalDateTime.now();
-    this.isAvailable = true;
     if (this.status == null) this.status = VehicleStatus.AVAILABLE;
   }
 

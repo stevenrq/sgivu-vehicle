@@ -104,17 +104,6 @@ public class MotorcycleController {
     return ResponseEntity.notFound().build();
   }
 
-  @PatchMapping("/{id}/availability")
-  @PreAuthorize("hasAuthority('motorcycle:update')")
-  public ResponseEntity<Map<String, Boolean>> changeAvailability(
-      @PathVariable Long id, @RequestBody boolean isAvailable) {
-    boolean isUpdated = motorcycleService.changeAvailability(id, isAvailable);
-    if (isUpdated) {
-      return ResponseEntity.ok(Collections.singletonMap("status", isAvailable));
-    }
-    return ResponseEntity.notFound().build();
-  }
-
   @PatchMapping("/{id}/status")
   @PreAuthorize("hasAuthority('motorcycle:update')")
   public ResponseEntity<Map<String, String>> changeStatus(
@@ -129,7 +118,7 @@ public class MotorcycleController {
   @PreAuthorize("hasAuthority('motorcycle:read')")
   public ResponseEntity<Map<String, Long>> getMotorcycleCounts() {
     long totalMotorcycles = motorcycleService.findAll().size();
-    long availableMotorcycles = motorcycleService.countByIsAvailable(true);
+    long availableMotorcycles = motorcycleService.countByStatus(VehicleStatus.AVAILABLE);
     long unavailableMotorcycles = totalMotorcycles - availableMotorcycles;
 
     Map<String, Long> counts = new HashMap<>(Map.of("totalMotorcycles", totalMotorcycles));

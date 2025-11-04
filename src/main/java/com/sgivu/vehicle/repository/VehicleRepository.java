@@ -1,6 +1,7 @@
 package com.sgivu.vehicle.repository;
 
 import com.sgivu.vehicle.entity.Vehicle;
+import com.sgivu.vehicle.enums.VehicleStatus;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,5 +17,5 @@ public interface VehicleRepository<T extends Vehicle> extends JpaRepository<T, L
 
   List<T> findByLineContainingIgnoreCase(String line);
 
-  long countByIsAvailable(boolean isAvailable);
+  long countByStatus(VehicleStatus status);
 }
