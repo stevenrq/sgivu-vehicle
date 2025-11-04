@@ -10,7 +10,8 @@ import org.springframework.security.web.access.intercept.RequestAuthorizationCon
 import org.springframework.stereotype.Component;
 
 /**
- * AuthorizationManager personalizado para la validación de solicitudes internas de servicios.
+ * AuthorizationManager personalizado que solo autoriza solicitudes provenientes de servicios
+ * internos del ecosistema.
  *
  * <p>Esta clase implementa {@link AuthorizationManager<RequestAuthorizationContext>} y se encarga
  * de autorizar peticiones HTTP basándose en un encabezado específico que contiene una clave secreta
