@@ -1,5 +1,6 @@
 package com.sgivu.vehicle.security;
 
+import com.sgivu.vehicle.config.InternalServiceAuthorizationManager;
 import com.sgivu.vehicle.config.ServicesProperties;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,9 +22,13 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableMethodSecurity
 public class SecurityConfig {
 
+  private final InternalServiceAuthorizationManager internalServiceAuthManager;
   private final ServicesProperties servicesProperties;
 
-  public SecurityConfig(ServicesProperties servicesProperties) {
+  public SecurityConfig(
+      InternalServiceAuthorizationManager internalServiceAuthManager,
+      ServicesProperties servicesProperties) {
+    this.internalServiceAuthManager = internalServiceAuthManager;
     this.servicesProperties = servicesProperties;
   }
 
@@ -36,6 +41,9 @@ public class SecurityConfig {
                 authz
                     .requestMatchers("/actuator/health", "/actuator/info")
                     .permitAll()
+                    // Solo los servicios internos pueden acceder a estos endpoints
+                    .requestMatchers("/v1/cars/**", "/v1/motorcycles/**")
+                    .access(internalServiceAuthManager)
                     .anyRequest()
                     .authenticated())
         .csrf(AbstractHttpConfigurer::disable);
