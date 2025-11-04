@@ -11,6 +11,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -71,11 +72,11 @@ public class MotorcycleController {
 
   @GetMapping("/page/{page}")
   @PreAuthorize("hasAuthority('motorcycle:read')")
-  public ResponseEntity<List<MotorcycleResponse>> getAllPaginated(@PathVariable Integer page) {
+  public ResponseEntity<Page<MotorcycleResponse>> getAllPaginated(@PathVariable Integer page) {
     return ResponseEntity.ok(
-        motorcycleService.findAll(PageRequest.of(page, 10)).stream()
-            .map(vehicleMapper::toMotorcycleResponse)
-            .toList());
+        motorcycleService
+            .findAll(PageRequest.of(page, 10))
+            .map(vehicleMapper::toMotorcycleResponse));
   }
 
   @PutMapping("/{id}")
