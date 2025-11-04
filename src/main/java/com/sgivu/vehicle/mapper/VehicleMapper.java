@@ -27,7 +27,7 @@ public interface VehicleMapper {
   @Mapping(source = "status", target = "status")
   @Mapping(source = "purchasePrice", target = "purchasePrice")
   @Mapping(source = "salePrice", target = "salePrice")
-  @Mapping(source = "available", target = "isAvailable")
+  @Mapping(source = "available", target = "available")
   @Mapping(source = "bodyType", target = "bodyType")
   @Mapping(source = "fuelType", target = "fuelType")
   @Mapping(source = "numberOfDoors", target = "numberOfDoors")
@@ -50,7 +50,7 @@ public interface VehicleMapper {
   @Mapping(source = "status", target = "status")
   @Mapping(source = "purchasePrice", target = "purchasePrice")
   @Mapping(source = "salePrice", target = "salePrice")
-  @Mapping(source = "available", target = "isAvailable")
+  @Mapping(source = "available", target = "available")
   @Mapping(source = "motorcycleType", target = "motorcycleType")
   MotorcycleResponse toMotorcycleResponse(Motorcycle motorcycle);
 }
