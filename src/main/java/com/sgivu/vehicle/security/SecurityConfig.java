@@ -1,29 +1,40 @@
 package com.sgivu.vehicle.security;
 
+import com.sgivu.vehicle.config.InternalServiceAuthorizationManager;
 import com.sgivu.vehicle.config.ServicesProperties;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.authorization.AuthorizationDecision;
+import org.springframework.security.authorization.AuthorizationManager;
+import org.springframework.security.authorization.AuthorizationManagers;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
 
+  private final InternalServiceAuthorizationManager internalServiceAuthManager;
   private final ServicesProperties servicesProperties;
 
-  public SecurityConfig(ServicesProperties servicesProperties) {
+  public SecurityConfig(
+      InternalServiceAuthorizationManager internalServiceAuthManager,
+      ServicesProperties servicesProperties) {
+    this.internalServiceAuthManager = internalServiceAuthManager;
     this.servicesProperties = servicesProperties;
   }
 
@@ -36,11 +47,30 @@ public class SecurityConfig {
                 authz
                     .requestMatchers("/actuator/health", "/actuator/info")
                     .permitAll()
+                    // Servicios internos (clave) o clientes autenticados pueden acceder
+                    .requestMatchers("/v1/cars/**", "/v1/motorcycles/**")
+                    .access(internalOrAuthenticatedAuthorizationManager())
                     .anyRequest()
                     .authenticated())
         .csrf(AbstractHttpConfigurer::disable);
 
     return http.build();
+  }
+
+  /** Autoriza llamadas provenientes de servicios internos confiables o de clientes autenticados. */
+  @Bean
+  AuthorizationManager<RequestAuthorizationContext> internalOrAuthenticatedAuthorizationManager() {
+    AuthorizationManager<RequestAuthorizationContext> authenticatedManager =
+        (authenticationSupplier, context) -> {
+          Authentication authentication = authenticationSupplier.get();
+          boolean isAuthenticated =
+              authentication != null
+                  && authentication.isAuthenticated()
+                  && !(authentication instanceof AnonymousAuthenticationToken);
+          return new AuthorizationDecision(isAuthenticated);
+        };
+
+    return AuthorizationManagers.anyOf(internalServiceAuthManager, authenticatedManager);
   }
 
   @Bean

@@ -83,7 +83,6 @@ GET    /v1/cars                           -> Lista completa de autos.
 GET    /v1/cars/page/{page}               -> Catálogo paginado (page size = 10).
 PUT    /v1/cars/{id}                      -> Actualiza atributos propios del automóvil.
 DELETE /v1/cars/{id}                      -> Elimina un auto del inventario.
-PATCH  /v1/cars/{id}/availability         -> Alterna disponibilidad (boolean).
 PATCH  /v1/cars/{id}/status               -> Cambia el estado (`VehicleStatus`).
 GET    /v1/cars/count                     -> Métricas rápidas (total/available/unavailable).
 GET    /v1/cars/search?...                -> Búsqueda por plate, brand, line, model, fuelType, bodyType.
@@ -94,7 +93,6 @@ GET    /v1/motorcycles                    -> Lista completa de motos.
 GET    /v1/motorcycles/page/{page}        -> Catálogo paginado (page size = 10).
 PUT    /v1/motorcycles/{id}               -> Actualiza atributos propios de la motocicleta.
 DELETE /v1/motorcycles/{id}               -> Elimina una moto del inventario.
-PATCH  /v1/motorcycles/{id}/availability  -> Alterna disponibilidad (boolean).
 PATCH  /v1/motorcycles/{id}/status        -> Cambia el estado (`VehicleStatus`).
 GET    /v1/motorcycles/count              -> Métricas rápidas (total/available/unavailable).
 GET    /v1/motorcycles/search?...         -> Búsqueda por plate, brand, line, model, motorcycleType.
@@ -103,7 +101,7 @@ GET    /actuator/health|info              -> Endpoints públicos para chequeos.
 ```
 
 * Los filtros de `/search` aceptan múltiples parámetros opcionales y combinan resultados sin duplicados.
-* Los `PATCH` esperan el payload mínimo (`true|false` para availability, enum `VehicleStatus` para status).
+* Los `PATCH` esperan el payload mínimo (enum `VehicleStatus` para status).
 
 ## 🔐 Seguridad
 

@@ -23,11 +23,9 @@ public interface VehicleService<T extends Vehicle> {
 
   Optional<T> findByPlate(String plate);
 
-  boolean changeAvailability(Long id, boolean isAvailable);
-
   Optional<T> changeStatus(Long id, VehicleStatus status);
 
-  long countByIsAvailable(boolean isAvailable);
+  long countByStatus(VehicleStatus status);
 
   List<T> findByPlateContainingIgnoreCase(String plate);
 

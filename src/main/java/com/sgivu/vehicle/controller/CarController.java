@@ -1,9 +1,11 @@
 package com.sgivu.vehicle.controller;
 
+import com.sgivu.vehicle.dto.CarResponse;
 import com.sgivu.vehicle.entity.Car;
 import com.sgivu.vehicle.enums.VehicleStatus;
+import com.sgivu.vehicle.mapper.VehicleMapper;
 import com.sgivu.vehicle.service.CarService;
-import java.util.ArrayList;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -34,51 +36,57 @@ import org.springframework.web.bind.annotation.RestController;
 public class CarController {
 
   private final CarService carService;
+  private final VehicleMapper vehicleMapper;
 
-  public CarController(CarService carService) {
+  public CarController(CarService carService, VehicleMapper vehicleMapper) {
     this.carService = carService;
+    this.vehicleMapper = vehicleMapper;
   }
 
   @PostMapping
   @PreAuthorize("hasAuthority('car:create')")
-  public ResponseEntity<Car> create(@RequestBody Car car, BindingResult bindingResult) {
+  public ResponseEntity<CarResponse> create(@RequestBody Car car, BindingResult bindingResult) {
     if (bindingResult.hasErrors()) {
       return ResponseEntity.badRequest().build();
     }
-    return ResponseEntity.status(HttpStatus.CREATED).body(carService.save(car));
+    CarResponse carResponse = vehicleMapper.toCarResponse(carService.save(car));
+    return ResponseEntity.status(HttpStatus.CREATED).body(carResponse);
   }
 
   @GetMapping("/{id}")
   @PreAuthorize("hasAuthority('car:read')")
-  public ResponseEntity<Car> getById(@PathVariable Long id) {
+  public ResponseEntity<CarResponse> getById(@PathVariable Long id) {
     return carService
         .findById(id)
-        .map(ResponseEntity::ok)
+        .map(car -> ResponseEntity.ok(vehicleMapper.toCarResponse(car)))
         .orElse(ResponseEntity.notFound().build());
   }
 
   @GetMapping
   @PreAuthorize("hasAuthority('car:read')")
-  public ResponseEntity<List<Car>> getAll() {
-    return ResponseEntity.ok(carService.findAll());
+  public ResponseEntity<List<CarResponse>> getAll() {
+    List<CarResponse> carResponses =
+        carService.findAll().stream().map(vehicleMapper::toCarResponse).toList();
+    return ResponseEntity.ok(carResponses);
   }
 
   @GetMapping("/page/{page}")
   @PreAuthorize("hasAuthority('car:read')")
-  public ResponseEntity<Page<Car>> getAllPaginated(@PathVariable Integer page) {
-    return ResponseEntity.ok(carService.findAll(PageRequest.of(page, 10)));
+  public ResponseEntity<Page<CarResponse>> getAllPaginated(@PathVariable Integer page) {
+    return ResponseEntity.ok(
+        carService.findAll(PageRequest.of(page, 10)).map(vehicleMapper::toCarResponse));
   }
 
   @PutMapping("/{id}")
   @PreAuthorize("hasAuthority('car:update')")
-  public ResponseEntity<Car> update(
+  public ResponseEntity<CarResponse> update(
       @PathVariable Long id, @RequestBody Car car, BindingResult bindingResult) {
     if (bindingResult.hasErrors()) {
       return ResponseEntity.badRequest().build();
     }
     return carService
         .update(id, car)
-        .map(ResponseEntity::ok)
+        .map(updatedCar -> ResponseEntity.ok(vehicleMapper.toCarResponse(updatedCar)))
         .orElse(ResponseEntity.notFound().build());
   }
 
@@ -92,17 +100,6 @@ public class CarController {
       return ResponseEntity.noContent().build();
     }
 
-    return ResponseEntity.notFound().build();
-  }
-
-  @PatchMapping("/{id}/availability")
-  @PreAuthorize("hasAuthority('car:update')")
-  public ResponseEntity<Map<String, Boolean>> changeAvailability(
-      @PathVariable Long id, @RequestBody boolean isAvailable) {
-    boolean isUpdated = carService.changeAvailability(id, isAvailable);
-    if (isUpdated) {
-      return ResponseEntity.ok(Collections.singletonMap("status", isAvailable));
-    }
     return ResponseEntity.notFound().build();
   }
 
@@ -120,7 +117,7 @@ public class CarController {
   @PreAuthorize("hasAuthority('car:read')")
   public ResponseEntity<Map<String, Long>> getCarCounts() {
     long totalCars = carService.findAll().size();
-    long availableCars = carService.countByIsAvailable(true);
+    long availableCars = carService.countByStatus(VehicleStatus.AVAILABLE);
     long unavailableCars = totalCars - availableCars;
 
     Map<String, Long> counts = new HashMap<>(Map.of("totalCars", totalCars));
@@ -132,7 +129,7 @@ public class CarController {
 
   @GetMapping("/search")
   @PreAuthorize("hasAuthority('car:read')")
-  public ResponseEntity<List<Car>> searchCars(
+  public ResponseEntity<List<CarResponse>> searchCars(
       @RequestParam(required = false) String plate,
       @RequestParam(required = false) String brand,
       @RequestParam(required = false) String line,
@@ -167,6 +164,7 @@ public class CarController {
           }
         });
 
-    return ResponseEntity.ok(new ArrayList<>(results));
+    List<CarResponse> carResponses = results.stream().map(vehicleMapper::toCarResponse).toList();
+    return ResponseEntity.ok(carResponses);
   }
 }

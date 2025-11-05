@@ -1,15 +1,18 @@
 package com.sgivu.vehicle.controller;
 
+import com.sgivu.vehicle.dto.MotorcycleResponse;
 import com.sgivu.vehicle.entity.Motorcycle;
 import com.sgivu.vehicle.enums.VehicleStatus;
+import com.sgivu.vehicle.mapper.VehicleMapper;
 import com.sgivu.vehicle.service.MotorcycleService;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,52 +35,63 @@ import org.springframework.web.bind.annotation.RestController;
 public class MotorcycleController {
 
   private final MotorcycleService motorcycleService;
+  private final VehicleMapper vehicleMapper;
 
-  public MotorcycleController(MotorcycleService motorcycleService) {
+  public MotorcycleController(MotorcycleService motorcycleService, VehicleMapper vehicleMapper) {
     this.motorcycleService = motorcycleService;
+    this.vehicleMapper = vehicleMapper;
   }
 
   @PostMapping
   @PreAuthorize("hasAuthority('motorcycle:create')")
-  public ResponseEntity<Motorcycle> create(
+  public ResponseEntity<MotorcycleResponse> create(
       @RequestBody Motorcycle motorcycle, BindingResult bindingResult) {
     if (bindingResult.hasErrors()) {
       return ResponseEntity.badRequest().build();
     }
-    return ResponseEntity.status(HttpStatus.CREATED).body(motorcycleService.save(motorcycle));
+    Motorcycle savedMotorcycle = motorcycleService.save(motorcycle);
+    MotorcycleResponse motorcycleResponse = vehicleMapper.toMotorcycleResponse(savedMotorcycle);
+    return ResponseEntity.status(HttpStatus.CREATED).body(motorcycleResponse);
   }
 
   @GetMapping("/{id}")
   @PreAuthorize("hasAuthority('motorcycle:read')")
-  public ResponseEntity<Motorcycle> getById(@PathVariable Long id) {
+  public ResponseEntity<MotorcycleResponse> getById(@PathVariable Long id) {
     return motorcycleService
         .findById(id)
+        .map(vehicleMapper::toMotorcycleResponse)
         .map(ResponseEntity::ok)
         .orElse(ResponseEntity.notFound().build());
   }
 
   @GetMapping
   @PreAuthorize("hasAuthority('motorcycle:read')")
-  public ResponseEntity<Iterable<Motorcycle>> getAll() {
-    return ResponseEntity.ok(motorcycleService.findAll());
+  public ResponseEntity<List<MotorcycleResponse>> getAll() {
+    return ResponseEntity.ok(
+        motorcycleService.findAll().stream().map(vehicleMapper::toMotorcycleResponse).toList());
   }
 
   @GetMapping("/page/{page}")
   @PreAuthorize("hasAuthority('motorcycle:read')")
-  public ResponseEntity<Iterable<Motorcycle>> getAllPaginated(@PathVariable Integer page) {
-    return ResponseEntity.ok(motorcycleService.findAll(PageRequest.of(page, 10)));
+  public ResponseEntity<Page<MotorcycleResponse>> getAllPaginated(@PathVariable Integer page) {
+    return ResponseEntity.ok(
+        motorcycleService
+            .findAll(PageRequest.of(page, 10))
+            .map(vehicleMapper::toMotorcycleResponse));
   }
 
   @PutMapping("/{id}")
   @PreAuthorize("hasAuthority('motorcycle:update')")
-  public ResponseEntity<Motorcycle> update(
+  public ResponseEntity<MotorcycleResponse> update(
       @PathVariable Long id, @RequestBody Motorcycle motorcycle, BindingResult bindingResult) {
     if (bindingResult.hasErrors()) {
       return ResponseEntity.badRequest().build();
     }
     return motorcycleService
         .update(id, motorcycle)
-        .map(ResponseEntity::ok)
+        .map(
+            motorcycleUpdated ->
+                ResponseEntity.ok(vehicleMapper.toMotorcycleResponse(motorcycleUpdated)))
         .orElse(ResponseEntity.notFound().build());
   }
 
@@ -87,17 +101,6 @@ public class MotorcycleController {
     if (motorcycleService.findById(id).isPresent()) {
       motorcycleService.deleteById(id);
       return ResponseEntity.noContent().build();
-    }
-    return ResponseEntity.notFound().build();
-  }
-
-  @PatchMapping("/{id}/availability")
-  @PreAuthorize("hasAuthority('motorcycle:update')")
-  public ResponseEntity<Map<String, Boolean>> changeAvailability(
-      @PathVariable Long id, @RequestBody boolean isAvailable) {
-    boolean isUpdated = motorcycleService.changeAvailability(id, isAvailable);
-    if (isUpdated) {
-      return ResponseEntity.ok(Collections.singletonMap("status", isAvailable));
     }
     return ResponseEntity.notFound().build();
   }
@@ -116,7 +119,7 @@ public class MotorcycleController {
   @PreAuthorize("hasAuthority('motorcycle:read')")
   public ResponseEntity<Map<String, Long>> getMotorcycleCounts() {
     long totalMotorcycles = motorcycleService.findAll().size();
-    long availableMotorcycles = motorcycleService.countByIsAvailable(true);
+    long availableMotorcycles = motorcycleService.countByStatus(VehicleStatus.AVAILABLE);
     long unavailableMotorcycles = totalMotorcycles - availableMotorcycles;
 
     Map<String, Long> counts = new HashMap<>(Map.of("totalMotorcycles", totalMotorcycles));
@@ -128,7 +131,7 @@ public class MotorcycleController {
 
   @GetMapping("/search")
   @PreAuthorize("hasAuthority('motorcycle:read')")
-  public ResponseEntity<List<Motorcycle>> searchMotorcycles(
+  public ResponseEntity<List<MotorcycleResponse>> searchMotorcycles(
       @RequestParam(required = false) String plate,
       @RequestParam(required = false) String brand,
       @RequestParam(required = false) String line,
@@ -137,13 +140,12 @@ public class MotorcycleController {
 
     Set<Motorcycle> results = new LinkedHashSet<>();
 
-    Map<String, String> filters =
-        Map.of(
-            "plate", plate,
-            "brand", brand,
-            "line", line,
-            "model", model,
-            "motorcycleType", motorcycleType);
+    Map<String, String> filters = new LinkedHashMap<>();
+    filters.put("plate", plate);
+    filters.put("brand", brand);
+    filters.put("line", line);
+    filters.put("model", model);
+    filters.put("motorcycleType", motorcycleType);
 
     filters.forEach(
         (key, value) -> {
@@ -163,6 +165,8 @@ public class MotorcycleController {
           }
         });
 
-    return ResponseEntity.ok(new ArrayList<>(results));
+    List<MotorcycleResponse> motorcycleResponses =
+        results.stream().map(vehicleMapper::toMotorcycleResponse).toList();
+    return ResponseEntity.ok(motorcycleResponses);
   }
 }
