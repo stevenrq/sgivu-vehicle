@@ -1,4 +1,8 @@
-DROP SEQUENCE IF EXISTS vehicles_id_seq;
+drop sequence if exists public.vehicles_id_seq cascade;
+drop table if exists public.cars cascade;
+drop table if exists public.motorcycles cascade;
+drop table if exists public.vehicles cascade;
+
 CREATE SEQUENCE vehicles_id_seq START WITH 1 INCREMENT BY 1;
 
 
