@@ -1,5 +1,6 @@
 package com.sgivu.vehicle.service;
 
+import com.sgivu.vehicle.dto.CarSearchCriteria;
 import com.sgivu.vehicle.entity.Car;
 import java.util.List;
 import java.util.Optional;
@@ -12,4 +13,6 @@ public interface CarService extends VehicleService<Car> {
   List<Car> findByFuelTypeContainingIgnoreCase(String fuelType);
 
   List<Car> findByBodyTypeContainingIgnoreCase(String bodyType);
+
+  List<Car> search(CarSearchCriteria criteria);
 }

@@ -1,13 +1,12 @@
 package com.sgivu.vehicle.service.impl;
 
+import com.sgivu.vehicle.dto.MotorcycleSearchCriteria;
 import com.sgivu.vehicle.entity.Motorcycle;
 import com.sgivu.vehicle.repository.MotorcycleRepository;
 import com.sgivu.vehicle.service.MotorcycleService;
-
-
+import com.sgivu.vehicle.specification.MotorcycleSpecifications;
 import java.util.List;
 import java.util.Optional;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +31,11 @@ public class MotorcycleServiceImpl
   @Override
   public List<Motorcycle> findByMotorcycleTypeContainingIgnoreCase(String motorcycleType) {
     return motorcycleRepository.findByMotorcycleTypeContainingIgnoreCase(motorcycleType);
+  }
+
+  @Override
+  public List<Motorcycle> search(MotorcycleSearchCriteria criteria) {
+    return motorcycleRepository.findAll(MotorcycleSpecifications.withFilters(criteria));
   }
 
   @Transactional

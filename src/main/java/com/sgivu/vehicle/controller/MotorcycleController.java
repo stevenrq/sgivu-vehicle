@@ -1,17 +1,15 @@
 package com.sgivu.vehicle.controller;
 
 import com.sgivu.vehicle.dto.MotorcycleResponse;
+import com.sgivu.vehicle.dto.MotorcycleSearchCriteria;
 import com.sgivu.vehicle.entity.Motorcycle;
 import com.sgivu.vehicle.enums.VehicleStatus;
 import com.sgivu.vehicle.mapper.VehicleMapper;
 import com.sgivu.vehicle.service.MotorcycleService;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
@@ -136,37 +134,48 @@ public class MotorcycleController {
       @RequestParam(required = false) String brand,
       @RequestParam(required = false) String line,
       @RequestParam(required = false) String model,
-      @RequestParam(required = false) String motorcycleType) {
+      @RequestParam(required = false) String motorcycleType,
+      @RequestParam(required = false) String transmission,
+      @RequestParam(required = false) String city,
+      @RequestParam(required = false) VehicleStatus status,
+      @RequestParam(required = false) Integer minYear,
+      @RequestParam(required = false) Integer maxYear,
+      @RequestParam(required = false) Integer minCapacity,
+      @RequestParam(required = false) Integer maxCapacity,
+      @RequestParam(required = false) Integer minMileage,
+      @RequestParam(required = false) Integer maxMileage,
+      @RequestParam(required = false) Double minSalePrice,
+      @RequestParam(required = false) Double maxSalePrice) {
 
-    Set<Motorcycle> results = new LinkedHashSet<>();
-
-    Map<String, String> filters = new LinkedHashMap<>();
-    filters.put("plate", plate);
-    filters.put("brand", brand);
-    filters.put("line", line);
-    filters.put("model", model);
-    filters.put("motorcycleType", motorcycleType);
-
-    filters.forEach(
-        (key, value) -> {
-          if (StringUtils.hasText(value)) {
-            switch (key) {
-              case "plate" -> motorcycleService.findByPlate(value).ifPresent(results::add);
-              case "brand" ->
-                  results.addAll(motorcycleService.findByBrandContainingIgnoreCase(value));
-              case "line" ->
-                  results.addAll(motorcycleService.findByLineContainingIgnoreCase(value));
-              case "model" ->
-                  results.addAll(motorcycleService.findByModelContainingIgnoreCase(value));
-              case "motorcycleType" ->
-                  results.addAll(motorcycleService.findByMotorcycleTypeContainingIgnoreCase(value));
-              default -> throw new IllegalArgumentException("Unknown filter: " + key);
-            }
-          }
-        });
+    MotorcycleSearchCriteria criteria =
+        MotorcycleSearchCriteria.builder()
+            .plate(trimToNull(plate))
+            .brand(trimToNull(brand))
+            .line(trimToNull(line))
+            .model(trimToNull(model))
+            .motorcycleType(trimToNull(motorcycleType))
+            .transmission(trimToNull(transmission))
+            .cityRegistered(trimToNull(city))
+            .status(status)
+            .minYear(minYear)
+            .maxYear(maxYear)
+            .minCapacity(minCapacity)
+            .maxCapacity(maxCapacity)
+            .minMileage(minMileage)
+            .maxMileage(maxMileage)
+            .minSalePrice(minSalePrice)
+            .maxSalePrice(maxSalePrice)
+            .build();
 
     List<MotorcycleResponse> motorcycleResponses =
-        results.stream().map(vehicleMapper::toMotorcycleResponse).toList();
+        motorcycleService.search(criteria).stream().map(vehicleMapper::toMotorcycleResponse).toList();
     return ResponseEntity.ok(motorcycleResponses);
+  }
+
+  private String trimToNull(String value) {
+    if (!StringUtils.hasText(value)) {
+      return null;
+    }
+    return value.trim();
   }
 }

@@ -1,8 +1,10 @@
 package com.sgivu.vehicle.service.impl;
 
+import com.sgivu.vehicle.dto.CarSearchCriteria;
 import com.sgivu.vehicle.entity.Car;
 import com.sgivu.vehicle.repository.CarRepository;
 import com.sgivu.vehicle.service.CarService;
+import com.sgivu.vehicle.specification.CarSpecifications;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
@@ -38,6 +40,11 @@ public class CarServiceImpl extends AbstractVehicleServiceImpl<Car, CarRepositor
   @Override
   public List<Car> findByBodyTypeContainingIgnoreCase(String bodyType) {
     return carRepository.findByBodyTypeContainingIgnoreCase(bodyType);
+  }
+
+  @Override
+  public List<Car> search(CarSearchCriteria criteria) {
+    return carRepository.findAll(CarSpecifications.withFilters(criteria));
   }
 
   @Transactional

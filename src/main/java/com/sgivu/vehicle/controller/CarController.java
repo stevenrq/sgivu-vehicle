@@ -1,6 +1,7 @@
 package com.sgivu.vehicle.controller;
 
 import com.sgivu.vehicle.dto.CarResponse;
+import com.sgivu.vehicle.dto.CarSearchCriteria;
 import com.sgivu.vehicle.entity.Car;
 import com.sgivu.vehicle.enums.VehicleStatus;
 import com.sgivu.vehicle.mapper.VehicleMapper;
@@ -8,11 +9,9 @@ import com.sgivu.vehicle.service.CarService;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
@@ -135,36 +134,49 @@ public class CarController {
       @RequestParam(required = false) String line,
       @RequestParam(required = false) String model,
       @RequestParam(required = false) String fuelType,
-      @RequestParam(required = false) String bodyType) {
+      @RequestParam(required = false) String bodyType,
+      @RequestParam(required = false) String transmission,
+      @RequestParam(required = false) String city,
+      @RequestParam(required = false) VehicleStatus status,
+      @RequestParam(required = false) Integer minYear,
+      @RequestParam(required = false) Integer maxYear,
+      @RequestParam(required = false) Integer minCapacity,
+      @RequestParam(required = false) Integer maxCapacity,
+      @RequestParam(required = false) Integer minMileage,
+      @RequestParam(required = false) Integer maxMileage,
+      @RequestParam(required = false) Double minSalePrice,
+      @RequestParam(required = false) Double maxSalePrice) {
 
-    Set<Car> results = new LinkedHashSet<>();
+    CarSearchCriteria criteria =
+        CarSearchCriteria.builder()
+            .plate(trimToNull(plate))
+            .brand(trimToNull(brand))
+            .line(trimToNull(line))
+            .model(trimToNull(model))
+            .fuelType(trimToNull(fuelType))
+            .bodyType(trimToNull(bodyType))
+            .transmission(trimToNull(transmission))
+            .cityRegistered(trimToNull(city))
+            .status(status)
+            .minYear(minYear)
+            .maxYear(maxYear)
+            .minCapacity(minCapacity)
+            .maxCapacity(maxCapacity)
+            .minMileage(minMileage)
+            .maxMileage(maxMileage)
+            .minSalePrice(minSalePrice)
+            .maxSalePrice(maxSalePrice)
+            .build();
 
-    Map<String, String> filters = new HashMap<>();
-    filters.put("plate", plate);
-    filters.put("brand", brand);
-    filters.put("line", line);
-    filters.put("model", model);
-    filters.put("fuelType", fuelType);
-    filters.put("bodyType", bodyType);
-
-    filters.forEach(
-        (key, value) -> {
-          if (StringUtils.hasText(value)) {
-            switch (key) {
-              case "plate" -> carService.findByPlate(value).ifPresent(results::add);
-              case "brand" -> results.addAll(carService.findByBrandContainingIgnoreCase(value));
-              case "line" -> results.addAll(carService.findByLineContainingIgnoreCase(value));
-              case "model" -> results.addAll(carService.findByModelContainingIgnoreCase(value));
-              case "fuelType" ->
-                  results.addAll(carService.findByFuelTypeContainingIgnoreCase(value));
-              case "bodyType" ->
-                  results.addAll(carService.findByBodyTypeContainingIgnoreCase(value));
-              default -> throw new IllegalArgumentException("Unknown filter: " + key);
-            }
-          }
-        });
-
-    List<CarResponse> carResponses = results.stream().map(vehicleMapper::toCarResponse).toList();
+    List<CarResponse> carResponses =
+        carService.search(criteria).stream().map(vehicleMapper::toCarResponse).toList();
     return ResponseEntity.ok(carResponses);
+  }
+
+  private String trimToNull(String value) {
+    if (!StringUtils.hasText(value)) {
+      return null;
+    }
+    return value.trim();
   }
 }
