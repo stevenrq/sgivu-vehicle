@@ -168,7 +168,9 @@ public class MotorcycleController {
             .build();
 
     List<MotorcycleResponse> motorcycleResponses =
-        motorcycleService.search(criteria).stream().map(vehicleMapper::toMotorcycleResponse).toList();
+        motorcycleService.search(criteria).stream()
+            .map(vehicleMapper::toMotorcycleResponse)
+            .toList();
     return ResponseEntity.ok(motorcycleResponses);
   }
 

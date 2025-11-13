@@ -32,9 +32,20 @@ public final class CarSpecifications {
       like(predicates, cb, root.get("cityRegistered"), criteria.getCityRegistered());
 
       range(predicates, cb, root.get("year"), criteria.getMinYear(), criteria.getMaxYear());
-      range(predicates, cb, root.get("capacity"), criteria.getMinCapacity(), criteria.getMaxCapacity());
-      range(predicates, cb, root.get("mileage"), criteria.getMinMileage(), criteria.getMaxMileage());
-      range(predicates, cb, root.get("salePrice"), criteria.getMinSalePrice(), criteria.getMaxSalePrice());
+      range(
+          predicates,
+          cb,
+          root.get("capacity"),
+          criteria.getMinCapacity(),
+          criteria.getMaxCapacity());
+      range(
+          predicates, cb, root.get("mileage"), criteria.getMinMileage(), criteria.getMaxMileage());
+      range(
+          predicates,
+          cb,
+          root.get("salePrice"),
+          criteria.getMinSalePrice(),
+          criteria.getMaxSalePrice());
 
       if (criteria.getStatus() != null) {
         predicates.add(cb.equal(root.get("status"), criteria.getStatus()));
@@ -44,6 +55,7 @@ public final class CarSpecifications {
         return cb.conjunction();
       }
 
+      assert query != null;
       query.distinct(true);
       return cb.and(predicates.toArray(new Predicate[0]));
     };
@@ -58,11 +70,7 @@ public final class CarSpecifications {
   }
 
   private static <N extends Number & Comparable<N>> void range(
-      List<Predicate> predicates,
-      CriteriaBuilder cb,
-      Path<N> path,
-      N min,
-      N max) {
+      List<Predicate> predicates, CriteriaBuilder cb, Path<N> path, N min, N max) {
     if (min != null) {
       predicates.add(cb.greaterThanOrEqualTo(path, min));
     }
