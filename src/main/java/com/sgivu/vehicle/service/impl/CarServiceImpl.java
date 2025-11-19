@@ -50,14 +50,13 @@ public class CarServiceImpl extends AbstractVehicleServiceImpl<Car, CarRepositor
   @Transactional
   @Override
   public Optional<Car> update(Long id, Car vehicle) {
-    return carRepository
-        .findById(id)
+    return super.update(id, vehicle)
         .map(
-            existing -> {
-              existing.setBodyType(vehicle.getBodyType());
-              existing.setFuelType(vehicle.getFuelType());
-              existing.setNumberOfDoors(vehicle.getNumberOfDoors());
-              return carRepository.save(existing);
+            updated -> {
+              updated.setBodyType(vehicle.getBodyType());
+              updated.setFuelType(vehicle.getFuelType());
+              updated.setNumberOfDoors(vehicle.getNumberOfDoors());
+              return carRepository.save(updated);
             });
   }
 }

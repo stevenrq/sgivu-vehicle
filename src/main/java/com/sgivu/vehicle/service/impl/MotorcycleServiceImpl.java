@@ -41,12 +41,11 @@ public class MotorcycleServiceImpl
   @Transactional
   @Override
   public Optional<Motorcycle> update(Long id, Motorcycle vehicle) {
-    return motorcycleRepository
-        .findById(id)
+    return super.update(id, vehicle)
         .map(
-            existing -> {
-              existing.setMotorcycleType(vehicle.getMotorcycleType());
-              return motorcycleRepository.save(existing);
+            updated -> {
+              updated.setMotorcycleType(vehicle.getMotorcycleType());
+              return motorcycleRepository.save(updated);
             });
   }
 }

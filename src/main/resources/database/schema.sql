@@ -2,8 +2,10 @@ drop sequence if exists public.vehicles_id_seq cascade;
 drop table if exists public.cars cascade;
 drop table if exists public.motorcycles cascade;
 drop table if exists public.vehicles cascade;
+drop table if exists public.vehicle_images cascade;
 
 CREATE SEQUENCE vehicles_id_seq START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE vehicle_images_id_seq START WITH 1 INCREMENT BY 1;
 
 
 CREATE TABLE vehicles
@@ -25,7 +27,6 @@ CREATE TABLE vehicles
     status          VARCHAR(20)      NOT NULL,
     purchase_price  DOUBLE PRECISION NOT NULL CHECK (purchase_price >= 0),
     sale_price      DOUBLE PRECISION NOT NULL CHECK (sale_price >= 0),
-    photo_url       VARCHAR(500),
     created_at      TIMESTAMP,
     updated_at      TIMESTAMP
 );
@@ -45,4 +46,26 @@ CREATE TABLE motorcycles
     vehicle_id      BIGINT PRIMARY KEY,
     motorcycle_type VARCHAR(20) NOT NULL,
     CONSTRAINT fk_motorcycle_vehicle FOREIGN KEY (vehicle_id) REFERENCES vehicles (id)
+);
+
+CREATE TABLE vehicle_images
+(
+    id         BIGINT PRIMARY KEY    DEFAULT nextval('vehicle_images_id_seq'),
+    vehicle_id BIGINT       NOT NULL,
+    bucket     VARCHAR(100) NOT NULL,
+
+    key        VARCHAR(255) NOT NULL,
+    file_name  VARCHAR(255) NOT NULL,
+
+    mime_type  VARCHAR(100),
+    file_size  BIGINT,
+    is_primary BOOLEAN      NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP    NOT NULL,
+
+    CONSTRAINT fk_vehicle_image_vehicle
+        FOREIGN KEY (vehicle_id) REFERENCES vehicles (id)
+            ON DELETE CASCADE,
+
+    CONSTRAINT vehicle_images_key_uk UNIQUE (key),
+    CONSTRAINT vehicle_images_file_name_uk UNIQUE (file_name)
 );
