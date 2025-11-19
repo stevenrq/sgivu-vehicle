@@ -17,6 +17,11 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
 
+/**
+ * Implementación de {@link S3Service} que encapsula toda la interacción con Amazon S3 (creación de
+ * buckets, carga/descarga de archivos y generación de URLs prefirmadas). Este servicio es reutilizado
+ * por la capa de imágenes de vehículos para delegar la complejidad de S3.
+ */
 @Service
 public class S3ServiceImpl implements S3Service {
 
@@ -31,6 +36,12 @@ public class S3ServiceImpl implements S3Service {
     this.s3Presigner = s3Presigner;
   }
 
+  /**
+   * Crea un bucket en S3 utilizando las credenciales configuradas.
+   *
+   * @param bucket nombre del bucket a crear
+   * @return ubicación devuelta por AWS
+   */
   @Override
   public String createBucket(String bucket) {
     CreateBucketResponse createBucketResponse =
@@ -39,6 +50,12 @@ public class S3ServiceImpl implements S3Service {
     return "Bucket creado correctamente en " + createBucketResponse.location();
   }
 
+  /**
+   * Verifica la existencia del bucket realizando una operación HEAD.
+   *
+   * @param bucket nombre del bucket
+   * @return mensaje indicando si existe o no
+   */
   @Override
   public String checkIfBucketExists(String bucket) {
     try {
@@ -49,6 +66,11 @@ public class S3ServiceImpl implements S3Service {
     }
   }
 
+  /**
+   * Lista todos los buckets asociados a las credenciales actuales.
+   *
+   * @return nombres de buckets
+   */
   @Override
   public List<String> getAllBuckets() {
     ListBucketsResponse listBucketsResponse = s3Client.listBuckets();
@@ -59,6 +81,14 @@ public class S3ServiceImpl implements S3Service {
     }
   }
 
+  /**
+   * Carga un archivo a S3.
+   *
+   * @param bucket bucket destino
+   * @param key clave completa dentro del bucket
+   * @param fileLocation ruta local del archivo
+   * @return {@code true} si la operación fue exitosa
+   */
   @Override
   public Boolean uploadFile(String bucket, String key, Path fileLocation) {
     PutObjectRequest putObjectRequest = PutObjectRequest.builder().bucket(bucket).key(key).build();
@@ -67,6 +97,14 @@ public class S3ServiceImpl implements S3Service {
     return putObjectResponse.sdkHttpResponse().isSuccessful();
   }
 
+  /**
+   * Descarga un archivo desde S3 y lo guarda en el directorio configurado. Crea directorios si no
+   * existen.
+   *
+   * @param bucket bucket origen
+   * @param key clave del objeto
+   * @throws IOException si falla la escritura local
+   */
   @Override
   public void downloadFile(String bucket, String key) throws IOException {
     GetObjectRequest getObjectRequest = GetObjectRequest.builder().bucket(bucket).key(key).build();
@@ -91,6 +129,15 @@ public class S3ServiceImpl implements S3Service {
     }
   }
 
+  /**
+   * Genera una URL prefirmada para subir archivos directamente a S3.
+   *
+   * @param bucket bucket destino
+   * @param key clave objetivo
+   * @param duration vigencia de la URL
+   * @param contentType tipo de contenido esperado
+   * @return URL firmada
+   */
   @Override
   public String generatePresignedUploadUrl(
       String bucket, String key, Duration duration, String contentType) {
@@ -104,6 +151,14 @@ public class S3ServiceImpl implements S3Service {
     return presignedRequest.url().toString();
   }
 
+  /**
+   * Genera una URL prefirmada para descargar objetos desde S3.
+   *
+   * @param bucket bucket origen
+   * @param key clave del objeto
+   * @param duration vigencia de la URL
+   * @return URL firmada de descarga
+   */
   @Override
   public String generatePresignedDownloadUrl(String bucket, String key, Duration duration) {
     PresignedGetObjectRequest presignedRequest =
@@ -116,6 +171,12 @@ public class S3ServiceImpl implements S3Service {
     return presignedRequest.url().toString();
   }
 
+  /**
+   * Elimina un objeto del bucket.
+   *
+   * @param bucket bucket origen
+   * @param key clave del objeto
+   */
   @Override
   public void deleteObject(String bucket, String key) {
     DeleteObjectRequest deleteObjectRequest =

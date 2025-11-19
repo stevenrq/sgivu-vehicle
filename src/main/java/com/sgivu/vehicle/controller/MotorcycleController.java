@@ -127,6 +127,11 @@ public class MotorcycleController {
     return ResponseEntity.ok(counts);
   }
 
+  /**
+   * Aplica filtros libres para encontrar motocicletas (placa, tipo, rango de precios, etc.).
+   *
+   * @return lista con las coincidencias
+   */
   @GetMapping("/search")
   @PreAuthorize("hasAuthority('motorcycle:read')")
   public ResponseEntity<List<MotorcycleResponse>> searchMotorcycles(
@@ -174,6 +179,13 @@ public class MotorcycleController {
     return ResponseEntity.ok(motorcycleResponses);
   }
 
+  /**
+   * Variante paginada del buscador de motocicletas.
+   *
+   * @param page índice solicitado
+   * @param size tamaño de página
+   * @return página de DTOs
+   */
   @GetMapping("/search/page/{page}")
   @PreAuthorize("hasAuthority('motorcycle:read')")
   public ResponseEntity<Page<MotorcycleResponse>> searchMotorcyclesPaginated(

@@ -10,10 +10,19 @@ import java.util.List;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.StringUtils;
 
+/**
+ * Construye especificaciones dinámicas para filtrar autos según múltiples criterios.
+ */
 public final class CarSpecifications {
 
   private CarSpecifications() {}
 
+  /**
+   * Genera un {@link Specification} a partir de los filtros recibidos.
+   *
+   * @param criteria filtros opcionales
+   * @return especificación lista para el repositorio
+   */
   public static Specification<Car> withFilters(CarSearchCriteria criteria) {
     return (root, query, cb) -> {
       if (criteria == null) {
@@ -61,6 +70,9 @@ public final class CarSpecifications {
     };
   }
 
+  /**
+   * Agrega un predicado LIKE, ignorando mayúsculas, cuando hay texto válido.
+   */
   private static void like(
       List<Predicate> predicates, CriteriaBuilder cb, Path<String> path, String value) {
     if (!StringUtils.hasText(value)) {
@@ -69,6 +81,9 @@ public final class CarSpecifications {
     predicates.add(cb.like(cb.lower(path), "%" + value.trim().toLowerCase() + "%"));
   }
 
+  /**
+   * Agrega límites mínimos y máximos para atributos numéricos.
+   */
   private static <N extends Number & Comparable<N>> void range(
       List<Predicate> predicates, CriteriaBuilder cb, Path<N> path, N min, N max) {
     if (min != null) {

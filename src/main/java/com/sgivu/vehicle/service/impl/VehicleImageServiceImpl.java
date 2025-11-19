@@ -21,6 +21,10 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 
+/**
+ * Servicio encargado de orquestar la gestión de imágenes de vehículos (presigned URLs, confirmación
+ * y eliminación). Coordina el acceso a S3 y la persistencia local de metadatos.
+ */
 @Service
 @Transactional
 public class VehicleImageServiceImpl implements VehicleImageService {
@@ -50,7 +54,6 @@ public class VehicleImageServiceImpl implements VehicleImageService {
   @Override
   public VehicleImagePresignedUploadResponse createPresignedUploadUrl(
       Long vehicleId, VehicleImagePresignedUploadRequest request) {
-
     if (request.contentType() == null || request.contentType().isBlank()) {
       throw new IllegalArgumentException("contentType es requerido para generar la URL.");
     }
@@ -71,6 +74,13 @@ public class VehicleImageServiceImpl implements VehicleImageService {
     return new VehicleImagePresignedUploadResponse(bucket, key, url);
   }
 
+  /**
+   * Verifica que la imagen exista en S3, evita duplicados y persiste los metadatos.
+   *
+   * @param vehicleId vehículo objetivo
+   * @param request datos retornados por el cliente tras subir la imagen
+   * @return entidad {@link VehicleImage} persistida
+   */
   @Override
   public VehicleImage confirmUpload(Long vehicleId, VehicleImageConfirmUploadRequest request) {
     Vehicle vehicle =
@@ -126,6 +136,12 @@ public class VehicleImageServiceImpl implements VehicleImageService {
     return vehicleImageRepository.save(image);
   }
 
+  /**
+   * Recupera las imágenes de un vehículo y genera URLs prefirmadas de descarga.
+   *
+   * @param vehicleId identificador del vehículo
+   * @return respuestas con URLs temporales
+   */
   @Override
   @Transactional(readOnly = true)
   public List<VehicleImageResponse> getImagesByVehicle(Long vehicleId) {
@@ -144,6 +160,12 @@ public class VehicleImageServiceImpl implements VehicleImageService {
         .toList();
   }
 
+  /**
+   * Elimina una imagen tanto de S3 como del repositorio local, reasignando una primaria si era la
+   * principal.
+   *
+   * @param imageId identificador de la imagen
+   */
   @Override
   public void deleteImage(Long imageId) {
     VehicleImage image =

@@ -126,6 +126,11 @@ public class CarController {
     return ResponseEntity.ok(counts);
   }
 
+  /**
+   * Busca autos aplicando múltiples filtros opcionales (placa, marca, rangos numéricos, etc.).
+   *
+   * @return lista de autos que cumplen los filtros
+   */
   @GetMapping("/search")
   @PreAuthorize("hasAuthority('car:read')")
   public ResponseEntity<List<CarResponse>> searchCars(
@@ -173,6 +178,13 @@ public class CarController {
     return ResponseEntity.ok(carResponses);
   }
 
+  /**
+   * Variante paginada de {@link #searchCars}.
+   *
+   * @param page índice de página
+   * @param size tamaño de página
+   * @return página de resultados
+   */
   @GetMapping("/search/page/{page}")
   @PreAuthorize("hasAuthority('car:read')")
   public ResponseEntity<Page<CarResponse>> searchCarsPaginated(
