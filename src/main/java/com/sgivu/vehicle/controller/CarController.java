@@ -173,6 +173,57 @@ public class CarController {
     return ResponseEntity.ok(carResponses);
   }
 
+  @GetMapping("/search/page/{page}")
+  @PreAuthorize("hasAuthority('car:read')")
+  public ResponseEntity<Page<CarResponse>> searchCarsPaginated(
+      @PathVariable Integer page,
+      @RequestParam(defaultValue = "10") Integer size,
+      @RequestParam(required = false) String plate,
+      @RequestParam(required = false) String brand,
+      @RequestParam(required = false) String line,
+      @RequestParam(required = false) String model,
+      @RequestParam(required = false) String fuelType,
+      @RequestParam(required = false) String bodyType,
+      @RequestParam(required = false) String transmission,
+      @RequestParam(required = false) String city,
+      @RequestParam(required = false) VehicleStatus status,
+      @RequestParam(required = false) Integer minYear,
+      @RequestParam(required = false) Integer maxYear,
+      @RequestParam(required = false) Integer minCapacity,
+      @RequestParam(required = false) Integer maxCapacity,
+      @RequestParam(required = false) Integer minMileage,
+      @RequestParam(required = false) Integer maxMileage,
+      @RequestParam(required = false) Double minSalePrice,
+      @RequestParam(required = false) Double maxSalePrice) {
+
+    CarSearchCriteria criteria =
+        CarSearchCriteria.builder()
+            .plate(trimToNull(plate))
+            .brand(trimToNull(brand))
+            .line(trimToNull(line))
+            .model(trimToNull(model))
+            .fuelType(trimToNull(fuelType))
+            .bodyType(trimToNull(bodyType))
+            .transmission(trimToNull(transmission))
+            .cityRegistered(trimToNull(city))
+            .status(status)
+            .minYear(minYear)
+            .maxYear(maxYear)
+            .minCapacity(minCapacity)
+            .maxCapacity(maxCapacity)
+            .minMileage(minMileage)
+            .maxMileage(maxMileage)
+            .minSalePrice(minSalePrice)
+            .maxSalePrice(maxSalePrice)
+            .build();
+
+    Page<CarResponse> pageResponse =
+        carService
+            .search(criteria, PageRequest.of(page, size))
+            .map(vehicleMapper::toCarResponse);
+    return ResponseEntity.ok(pageResponse);
+  }
+
   private String trimToNull(String value) {
     if (!StringUtils.hasText(value)) {
       return null;

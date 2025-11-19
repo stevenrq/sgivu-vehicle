@@ -174,6 +174,55 @@ public class MotorcycleController {
     return ResponseEntity.ok(motorcycleResponses);
   }
 
+  @GetMapping("/search/page/{page}")
+  @PreAuthorize("hasAuthority('motorcycle:read')")
+  public ResponseEntity<Page<MotorcycleResponse>> searchMotorcyclesPaginated(
+      @PathVariable Integer page,
+      @RequestParam(defaultValue = "10") Integer size,
+      @RequestParam(required = false) String plate,
+      @RequestParam(required = false) String brand,
+      @RequestParam(required = false) String line,
+      @RequestParam(required = false) String model,
+      @RequestParam(required = false) String motorcycleType,
+      @RequestParam(required = false) String transmission,
+      @RequestParam(required = false) String city,
+      @RequestParam(required = false) VehicleStatus status,
+      @RequestParam(required = false) Integer minYear,
+      @RequestParam(required = false) Integer maxYear,
+      @RequestParam(required = false) Integer minCapacity,
+      @RequestParam(required = false) Integer maxCapacity,
+      @RequestParam(required = false) Integer minMileage,
+      @RequestParam(required = false) Integer maxMileage,
+      @RequestParam(required = false) Double minSalePrice,
+      @RequestParam(required = false) Double maxSalePrice) {
+
+    MotorcycleSearchCriteria criteria =
+        MotorcycleSearchCriteria.builder()
+            .plate(trimToNull(plate))
+            .brand(trimToNull(brand))
+            .line(trimToNull(line))
+            .model(trimToNull(model))
+            .motorcycleType(trimToNull(motorcycleType))
+            .transmission(trimToNull(transmission))
+            .cityRegistered(trimToNull(city))
+            .status(status)
+            .minYear(minYear)
+            .maxYear(maxYear)
+            .minCapacity(minCapacity)
+            .maxCapacity(maxCapacity)
+            .minMileage(minMileage)
+            .maxMileage(maxMileage)
+            .minSalePrice(minSalePrice)
+            .maxSalePrice(maxSalePrice)
+            .build();
+
+    Page<MotorcycleResponse> responsePage =
+        motorcycleService
+            .search(criteria, PageRequest.of(page, size))
+            .map(vehicleMapper::toMotorcycleResponse);
+    return ResponseEntity.ok(responsePage);
+  }
+
   private String trimToNull(String value) {
     if (!StringUtils.hasText(value)) {
       return null;

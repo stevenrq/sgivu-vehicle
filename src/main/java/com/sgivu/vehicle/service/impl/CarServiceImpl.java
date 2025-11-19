@@ -7,6 +7,8 @@ import com.sgivu.vehicle.service.CarService;
 import com.sgivu.vehicle.specification.CarSpecifications;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,7 +46,12 @@ public class CarServiceImpl extends AbstractVehicleServiceImpl<Car, CarRepositor
 
   @Override
   public List<Car> search(CarSearchCriteria criteria) {
-    return carRepository.findAll(CarSpecifications.withFilters(criteria));
+    return search(criteria, Pageable.unpaged()).getContent();
+  }
+
+  @Override
+  public Page<Car> search(CarSearchCriteria criteria, Pageable pageable) {
+    return carRepository.findAll(CarSpecifications.withFilters(criteria), pageable);
   }
 
   @Transactional

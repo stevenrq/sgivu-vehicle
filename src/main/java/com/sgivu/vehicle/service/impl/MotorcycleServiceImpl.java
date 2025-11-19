@@ -7,6 +7,8 @@ import com.sgivu.vehicle.service.MotorcycleService;
 import com.sgivu.vehicle.specification.MotorcycleSpecifications;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,7 +37,12 @@ public class MotorcycleServiceImpl
 
   @Override
   public List<Motorcycle> search(MotorcycleSearchCriteria criteria) {
-    return motorcycleRepository.findAll(MotorcycleSpecifications.withFilters(criteria));
+    return search(criteria, Pageable.unpaged()).getContent();
+  }
+
+  @Override
+  public Page<Motorcycle> search(MotorcycleSearchCriteria criteria, Pageable pageable) {
+    return motorcycleRepository.findAll(MotorcycleSpecifications.withFilters(criteria), pageable);
   }
 
   @Transactional
